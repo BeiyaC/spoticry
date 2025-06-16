@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil - Music Blog{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h1 class="display-4 text-primary mb-4">
+                <i class="bi bi-person-circle"></i> Mon profil
+            </h1>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informations personnelles</h5>
+                </div>
+                <div class="card-body text-secondary">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong>Nom d'utilisateur :</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            {{ user.username }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong>Email :</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            {{ user.email }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong>Membre depuis :</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            {{ user.createdAt ? user.createdAt|date('d/m/Y') : 'N/A' }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <strong>Rôle :</strong>
+                        </div>
+                        <div class="col-sm-9">
+                            {% if 'ROLE_ADMIN' in user.roles %}
+                                <span class="badge bg-danger">Administrateur</span>
+                            {% else %}
+                                <span class="badge bg-primary">Utilisateur</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Statistiques</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <h3 class="text-primary">{{ user.comments|length }}</h3>
+                            <p class="text-secondary">Commentaires postés</p>
+                        </div>
+                        {% if 'ROLE_ADMIN' in user.roles %}
+                            <div class="col-md-6">
+                                <h3 class="text-primary">{{ user.articles|length }}</h3>
+                                <p class="text-secondary">Articles publiés</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if user.comments|length > 0 %}
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Mes derniers commentaires</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for comment in user.comments|slice(0, 5) %}
+                                {% if not comment.isDeleted and comment.article %}
+                                    <a href="{{ path('app_article_show', {'slug': comment.article.slug}) }}"
+                                       class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 text-primary">{{ comment.article.title }}</h6>
+                                            <small class="text-secondary">{{ comment.createdAt ? comment.createdAt|date('d/m/Y') : 'N/A' }}</small>
+                                        </div>
+                                        <p class="mb-1 text-secondary">{{ comment.content|slice(0, 100) }}...</p>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

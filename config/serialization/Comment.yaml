@@ -1,0 +1,12 @@
+App\Entity\Comment:
+    attributes:
+        id:
+            groups: ['article:read', 'comment:read']
+        content:
+            groups: ['article:read', 'comment:read']
+        createdAt:
+            groups: ['article:read', 'comment:read']
+        author:
+            groups: ['article:read', 'comment:read']
+        isApproved:
+            groups: ['comment:read']

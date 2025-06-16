@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ article.title }}</title>
+    <style>
+        @page {
+            margin: 2cm;
+        }
+
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        h1 {
+            color: #1DB954;
+            border-bottom: 3px solid #1DB954;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .meta-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+
+        .meta-info p {
+            margin: 5px 0;
+        }
+
+        .artist-section {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 30px 0;
+        }
+
+        .artist-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .content {
+            text-align: justify;
+            margin-bottom: 30px;
+        }
+
+        .tags {
+            margin-top: 20px;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #1DB954;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .track-list {
+            margin-top: 20px;
+        }
+
+        .track {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-left: 3px solid #1DB954;
+        }
+
+        .album-list {
+            margin-top: 20px;
+        }
+
+        .album {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>{{ article.title }}</h1>
+
+    <div class="meta-info">
+        <p><strong>Artiste :</strong> {{ article.artistName }}</p>
+        <p><strong>Auteur :</strong> {{ article.author ? article.author.username : 'Anonyme' }}</p>
+        <p><strong>Date de publication :</strong> {{ article.publishedAt ? article.publishedAt|date('d/m/Y') : 'Non publié' }}</p>
+        <p><strong>Nombre de vues :</strong> {{ article.viewCount }}</p>
+    </div>
+</div>
+
+{% if article.excerpt %}
+    <div class="excerpt">
+        <h2>Résumé</h2>
+        <p><em>{{ article.excerpt }}</em></p>
+    </div>
+{% endif %}
+
+<div class="content">
+    <h2>Article</h2>
+    {{ article.content|nl2br }}
+</div>
+
+{% if article.tags|length > 0 %}
+    <div class="tags">
+        <h2>Tags</h2>
+        {% for tag in article.tags %}
+            <span class="tag">{{ tag }}</span>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if artistData %}
+    <div class="artist-section">
+        <h2>Informations sur l'artiste</h2>
+
+        {% if artistData.artist.images[0] is defined %}
+            <img src="{{ artistData.artist.images[0].url }}" class="artist-image" alt="{{ article.artistName }}">
+        {% endif %}
+
+        {% if artistData.artist.genres is defined and artistData.artist.genres|length > 0 %}
+            <p><strong>Genres :</strong> {{ artistData.artist.genres|join(', ') }}</p>
+        {% endif %}
+
+        {% if artistData.artist.popularity is defined %}
+            <p><strong>Popularité :</strong> {{ artistData.artist.popularity }}/100</p>
+        {% endif %}
+
+        {% if artistData.artist.followers.total is defined %}
+            <p><strong>Followers :</strong> {{ artistData.artist.followers.total|number_format(0, ',', ' ') }}</p>
+        {% endif %}
+
+        {% if artistData.topTracks.tracks is defined and artistData.topTracks.tracks|length > 0 %}
+            <div class="track-list">
+                <h3>Top Tracks</h3>
+                {% for track in artistData.topTracks.tracks|slice(0, 5) %}
+                    <div class="track">
+                        <strong>{{ loop.index }}. {{ track.name }}</strong>
+                        {% if track.album.name is defined %}
+                            <br><small>Album : {{ track.album.name }}</small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if artistData.albums.items is defined and artistData.albums.items|length > 0 %}
+            <div class="album-list">
+                <h3>Albums récents</h3>
+                {% for album in artistData.albums.items|slice(0, 5) %}
+                    <div class="album">
+                        <strong>{{ album.name }}</strong> ({{ album.release_date|slice(0, 4) }})
+                        <br><small>Type : {{ album.album_type|capitalize }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<div class="footer">
+    <p>Music Blog - Article exporté le {{ "now"|date("d/m/Y à H:i") }}</p>
+    <p>© {{ "now"|date("Y") }} Music Blog. Tous droits réservés.</p>
+</div>
+</body>
+</html>

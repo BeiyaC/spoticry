@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration des articles - Music Blog{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-4 text-primary">
+            <i class="bi bi-gear"></i> Administration des articles
+        </h1>
+        <a href="{{ path('app_admin_article_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nouvel article
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Artiste</th>
+                        <th>Auteur</th>
+                        <th>Statut</th>
+                        <th>Date création</th>
+                        <th>Vues</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for article in pagination %}
+                        <tr>
+                            <td>{{ article.id }}</td>
+                            <td>
+                                <a href="{{ path('app_article_show', {'slug': article.slug}) }}" class="text-primary text-decoration-none" target="_blank">
+                                    {{ article.title|slice(0, 50) }}{% if article.title|length > 50 %}...{% endif %}
+                                </a>
+                            </td>
+                            <td>{{ article.artistName }}</td>
+                            <td>{{ article.author ? article.author.username : 'Anonyme' }}</td>
+                            <td>
+                                {% if article.isPublished %}
+                                    <span class="badge bg-success">Publié</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Brouillon</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ article.createdAt ? article.createdAt|date('d/m/Y') : 'N/A' }}</td>
+                            <td>{{ article.viewCount }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('app_admin_article_show', {'id': article.id}) }}" class="btn btn-sm btn-info" title="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_admin_article_edit', {'id': article.id}) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <form method="post" action="{{ path('app_admin_article_toggle_publish', {'id': article.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ article.id) }}">
+                                        <button type="submit" class="btn btn-sm {{ article.isPublished ? 'btn-secondary' : 'btn-success' }}"
+                                                title="{{ article.isPublished ? 'Dépublier' : 'Publier' }}">
+                                            <i class="bi bi-{{ article.isPublished ? 'eye-slash' : 'check-circle' }}"></i>
+                                        </button>
+                                    </form>
+
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ article.id }}" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">
+                                <em>Aucun article trouvé</em>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if pagination.pageCount > 1 %}
+                <div class="d-flex justify-content-center mt-4">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% for article in pagination %}
+        <div class="modal fade" id="deleteModal{{ article.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmer la suppression</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Êtes-vous sûr de vouloir supprimer l'article "{{ article.title }}" ?</p>
+                        <p class="text-warning"><small>Cette action est irréversible et supprimera également tous les commentaires associés.</small></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <form method="post" action="{{ path('app_admin_article_delete', {'id': article.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

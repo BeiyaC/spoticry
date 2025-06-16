@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvel article - Music Blog{% endblock %}
+
+{% block body %}
+    <h1 class="display-4 text-primary mb-4">
+        <i class="bi bi-plus-circle"></i> Nouvel article
+    </h1>
+
+    {{ include('admin/article/_form.html.twig', {'button_label': 'Créer l\'article'}) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentTextarea = document.querySelector('[data-editor="true"]');
+            if (contentTextarea) {
+                const counter = document.createElement('div');
+                counter.className = 'text-secondary small mt-1';
+                counter.textContent = '0 caractères';
+                contentTextarea.parentNode.appendChild(counter);
+
+                contentTextarea.addEventListener('input', function() {
+                    counter.textContent = this.value.length + ' caractères';
+                });
+            }
+        });
+    </script>
+{% endblock %}

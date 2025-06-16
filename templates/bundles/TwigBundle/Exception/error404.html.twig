@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page non trouvée - Music Blog{% endblock %}
+
+{% block body %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-music-note-beamed display-1 text-primary"></i>
+        </div>
+
+        <h1 class="display-1 text-primary">404</h1>
+
+        <h2 class="display-4 mb-4">Oops ! Cette page n'existe pas</h2>
+
+        <p class="lead text-secondary mb-5">
+            Il semble que la page que vous recherchez ait été déplacée ou n'existe plus.<br>
+            Mais ne vous inquiétez pas, la musique continue !
+        </p>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ path('app_article_index') }}" class="btn btn-primary">
+                <i class="bi bi-house"></i> Retour à l'accueil
+            </a>
+
+            <button onclick="history.back()" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Page précédente
+            </button>
+        </div>
+
+        <div class="mt-5">
+            <p class="text-secondary">
+                <i class="bi bi-search"></i> Vous pouvez aussi utiliser la barre de recherche pour trouver ce que vous cherchez.
+            </p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .bi-music-note-beamed {
+            animation: bounce 2s ease-in-out infinite;
+        }
+    </style>
+{% endblock %}

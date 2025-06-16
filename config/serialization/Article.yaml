@@ -1,0 +1,36 @@
+App\Entity\Article:
+    attributes:
+        id:
+            groups: ['article:list', 'article:read']
+        title:
+            groups: ['article:list', 'article:read']
+        slug:
+            groups: ['article:list', 'article:read']
+        content:
+            groups: ['article:read']
+        excerpt:
+            groups: ['article:list', 'article:read']
+        artistName:
+            groups: ['article:list', 'article:read']
+        artistSpotifyId:
+            groups: ['article:read']
+        artistImage:
+            groups: ['article:list', 'article:read']
+        artistData:
+            groups: ['article:read']
+        createdAt:
+            groups: ['article:read']
+        updatedAt:
+            groups: ['article:read']
+        publishedAt:
+            groups: ['article:list', 'article:read']
+        isPublished:
+            groups: ['article:read']
+        viewCount:
+            groups: ['article:list', 'article:read']
+        tags:
+            groups: ['article:list', 'article:read']
+        author:
+            groups: ['article:read']
+        comments:
+            groups: ['article:read']

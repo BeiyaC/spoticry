@@ -1,0 +1,193 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.title }} - Music Blog{% endblock %}
+
+{% block body %}
+    <article>
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <h1 class="display-4 text-primary mb-3">{{ article.title }}</h1>
+
+                <div class="d-flex align-items-center mb-4 text-secondary">
+                    <i class="bi bi-person-circle fs-4 me-2"></i>
+                    <span class="me-3">Par {{ article.author ? article.author.username : 'Anonyme' }}</span>
+                    <i class="bi bi-calendar fs-5 me-2"></i>
+                    <span class="me-3">{{ article.publishedAt ? article.publishedAt|date('d/m/Y') : 'Non publié' }}</span>
+                    <i class="bi bi-eye fs-5 me-2"></i>
+                    <span>{{ article.viewCount }} vues</span>
+                </div>
+
+                <div class="mb-4">
+                    {% for tag in article.tags %}
+                        <a href="{{ path('app_article_by_tag', {'tag': tag}) }}" class="tag text-decoration-none">
+                            {{ tag }}
+                        </a>
+                    {% endfor %}
+                </div>
+
+                {% if article.excerpt %}
+                    <div class="lead text-secondary mb-4">
+                        {{ article.excerpt }}
+                    </div>
+                {% endif %}
+
+                <div class="content mb-5">
+                    {{ article.content|nl2br }}
+                </div>
+
+                <div class="d-flex gap-2 mb-5">
+                    {% if app.user and article.slug %}
+                        <a href="{{ path('app_article_export_pdf', {'slug': article.slug}) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-file-pdf"></i> Exporter en PDF
+                        </a>
+                    {% endif %}
+                    {% if is_granted('ROLE_ADMIN') and article.id %}
+                        <a href="{{ path('app_admin_article_edit', {'id': article.id}) }}" class="btn btn-outline-warning">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-music-note-beamed"></i> {{ article.artistName }}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if article.artistImage %}
+                            <img src="{{ article.artistImage }}" class="img-fluid rounded mb-3" alt="{{ article.artistName }}">
+                        {% endif %}
+
+                        {% if article.artistData %}
+                            <h6 class="text-primary">Genres</h6>
+                            <p class="text-secondary">
+                                {% for genre in article.artistData.genres|default([]) %}
+                                    <span class="badge bg-secondary">{{ genre }}</span>
+                                {% endfor %}
+                            </p>
+
+                            {% if article.artistData.popularity is defined %}
+                                <h6 class="text-primary">Popularité</h6>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar bg-primary" style="width: {{ article.artistData.popularity }}%">
+                                        {{ article.artistData.popularity }}/100
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if article.artistData.followers is defined %}
+                                <h6 class="text-primary">Followers</h6>
+                                <p class="text-secondary">
+                                    <i class="bi bi-people"></i> {{ article.artistData.followers.total|number_format(0, ',', ' ') }}
+                                </p>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if article.artistSpotifyId %}
+                            <a href="https://open.spotify.com/artist/{{ article.artistSpotifyId }}" target="_blank" class="btn btn-success btn-sm w-100">
+                                <i class="bi bi-spotify"></i> Écouter sur Spotify
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="bi bi-newspaper"></i> Articles similaires</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary text-center">
+                            <em>Fonctionnalité à venir</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comment-section">
+            <h3 class="mb-4"><i class="bi bi-chat-dots"></i> Commentaires ({{ article.comments|length }})</h3>
+
+            {% if app.user %}
+                {% if comment_form %}
+                    {{ form_start(comment_form) }}
+                    <div class="mb-3">
+                        {{ form_widget(comment_form.content) }}
+                        {{ form_errors(comment_form.content) }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Publier le commentaire
+                    </button>
+                    {{ form_end(comment_form) }}
+                {% endif %}
+
+                <hr class="my-4">
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <a href="{{ path('app_login') }}" class="alert-link">Connectez-vous</a> pour laisser un commentaire.
+                </div>
+            {% endif %}
+
+            <div class="comments-list">
+                {% for comment in article.comments %}
+                    {% if comment.isApproved and not comment.isDeleted %}
+                        <div class="comment">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong class="text-primary">
+                                        <i class="bi bi-person-circle"></i> {{ comment.author ? comment.author.username : 'Anonyme' }}
+                                    </strong>
+                                    <small class="text-secondary ms-2">
+                                        {{ comment.createdAt ? comment.createdAt|date('d/m/Y à H:i') : 'Date inconnue' }}
+                                    </small>
+                                </div>
+                                {% if is_granted('ROLE_ADMIN') or (comment.author and comment.author == app.user) %}
+                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteComment{{ comment.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                            <p class="mb-0">{{ comment.content|nl2br }}</p>
+
+                            {% if comment.updatedAt and comment.updatedAt != comment.createdAt %}
+                                <small class="text-secondary">
+                                    <em>Modifié le {{ comment.updatedAt|date('d/m/Y à H:i') }}</em>
+                                </small>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-center text-secondary">
+                        <em>Aucun commentaire pour le moment. Soyez le premier à commenter !</em>
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </article>
+
+    {% for comment in article.comments %}
+        {% if (is_granted('ROLE_ADMIN') or (comment.author and comment.author == app.user)) and comment.isApproved and not comment.isDeleted %}
+            <div class="modal fade" id="deleteComment{{ comment.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Supprimer le commentaire</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Êtes-vous sûr de vouloir supprimer ce commentaire ?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <form method="post" action="{{ path('app_comment_delete', {'id': comment.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                <button type="submit" class="btn btn-danger">Supprimer</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

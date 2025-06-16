@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - Music Blog{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0"><i class="bi bi-person-check"></i> Connexion</h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            {{ error.messageKey|trans(error.messageData, 'security') }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="inputEmail" class="form-label text-primary">Email</label>
+                            <input type="email" value="{{ last_username }}" name="email" id="inputEmail"
+                                   class="form-control-plaintext search-box" placeholder="votre@email.com"
+                                   autocomplete="email" required autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputPassword" class="form-label text-primary">Mot de passe</label>
+                            <input type="password" name="password" id="inputPassword"
+                                   class="form-control-plaintext search-box" placeholder="votre mot de passe"
+                                   autocomplete="current-password" required>
+                        </div>
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="text-secondary mb-2">Pas encore de compte ?</p>
+                        <a href="{{ path('app_register') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-person-plus"></i> Créer un compte
+                        </a>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-dark rounded">
+                        <h6 class="text-primary">Comptes de test</h6>
+                        <small class="text-secondary">
+                            <strong>Super Admin :</strong> superadmin@music-blog.com / superadmin123<br>
+                            <strong>Admin :</strong> admin@music-blog.com / admin123<br>
+                            <strong>User :</strong> user@music-blog.com / user123
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -71,7 +71,7 @@ class Article
     private ?\DateTimeImmutable $publishedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'articles')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $author = null;
 
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Comment::class, orphanRemoval: true)]
@@ -81,14 +81,17 @@ class Article
     #[ORM\Column(type: Types::JSON)]
     private array $tags = [];
 
-    #[ORM\Column(nullable: true)]
-    private ?int $viewCount = 0;
+    #[ORM\Column(nullable: false)]
+    private int $viewCount = 0;
 
     public function __construct()
     {
         $this->comments = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->viewCount = 0;
+        $this->tags = [];
+        $this->isPublished = false;
     }
 
     #[ORM\PrePersist]
@@ -113,6 +116,17 @@ class Article
         if (empty($this->slug) && !empty($this->title)) {
             $slugger = new AsciiSlugger();
             $this->slug = $slugger->slug($this->title)->lower();
+        }
+    }
+
+    #[ORM\PrePersist]
+    public function prePersist(): void
+    {
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
+        if ($this->updatedAt === null) {
+            $this->updatedAt = new \DateTimeImmutable();
         }
     }
 
@@ -264,6 +278,9 @@ class Article
         return $this;
     }
 
+    /**
+     * @return Collection<int, Comment>
+     */
     public function getComments(): Collection
     {
         return $this->comments;
@@ -299,12 +316,12 @@ class Article
         return $this;
     }
 
-    public function getViewCount(): ?int
+    public function getViewCount(): int
     {
         return $this->viewCount;
     }
 
-    public function setViewCount(?int $viewCount): static
+    public function setViewCount(int $viewCount): static
     {
         $this->viewCount = $viewCount;
         return $this;

@@ -1,0 +1,193 @@
+{{ form_start(form) }}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Informations de l'article</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    {{ form_label(form.title) }}
+                    {{ form_widget(form.title) }}
+                    {{ form_errors(form.title) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.excerpt) }}
+                    {{ form_widget(form.excerpt) }}
+                    {{ form_errors(form.excerpt) }}
+                    <small class="text-secondary">Un court résumé qui apparaîtra dans les listes d'articles</small>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.content) }}
+                    {{ form_widget(form.content) }}
+                    {{ form_errors(form.content) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-music-note-beamed"></i> Informations artiste</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    {{ form_label(form.artistName) }}
+                    {{ form_widget(form.artistName) }}
+                    {{ form_errors(form.artistName) }}
+                    <div id="spotify-search-results" class="mt-2"></div>
+                </div>
+
+                {% if article.artistImage %}
+                    <div class="mb-3">
+                        <img src="{{ article.artistImage }}" class="img-fluid rounded" alt="{{ article.artistName }}">
+                    </div>
+                {% endif %}
+
+                {% if article.id %}
+                    <div class="mb-3">
+                        {{ form_widget(form.updateSpotifyData) }}
+                        {{ form_label(form.updateSpotifyData) }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-tags"></i> Tags et publication</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    {{ form_label(form.tags) }}
+                    <div id="tags-container">
+                        {{ form_widget(form.tags) }}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary mt-2" id="add-tag">
+                        <i class="bi bi-plus"></i> Ajouter un tag
+                    </button>
+                    {{ form_errors(form.tags) }}
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form_widget(form.isPublished) }}
+                        {{ form_label(form.isPublished) }}
+                    </div>
+                </div>
+
+                {% if article.id %}
+                    <div class="text-secondary">
+                        <small>
+                            Créé le : {{ article.createdAt|date('d/m/Y à H:i') }}<br>
+                            Modifié le : {{ article.updatedAt|date('d/m/Y à H:i') }}<br>
+                            {% if article.publishedAt %}
+                                Publié le : {{ article.publishedAt|date('d/m/Y à H:i') }}
+                            {% endif %}
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i> {{ button_label|default('Enregistrer') }}
+    </button>
+    <a href="{{ path('app_admin_article_index') }}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Annuler
+    </a>
+</div>
+{{ form_end(form) }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const artistInput = document.querySelector('[data-spotify-search="true"]');
+        const searchResults = document.getElementById('spotify-search-results');
+        let searchTimeout;
+
+        if (artistInput) {
+            artistInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    searchResults.innerHTML = '';
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    fetch(`{{ path('app_admin_article_search_spotify') }}?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            searchResults.innerHTML = '';
+
+                            if (data.length > 0) {
+                                const list = document.createElement('div');
+                                list.className = 'list-group mt-2';
+
+                                data.forEach(artist => {
+                                    const item = document.createElement('a');
+                                    item.href = '#';
+                                    item.className = 'list-group-item list-group-item-action d-flex align-items-center';
+
+                                    let html = '';
+                                    if (artist.image) {
+                                        html += `<img src="${artist.image}" class="rounded me-2" width="40" height="40" alt="${artist.name}">`;
+                                    }
+                                    html += `<div>
+                                    <strong>${artist.name}</strong><br>
+                                    <small class="text-muted">${artist.genres.join(', ') || 'Pas de genre'}</small>
+                                </div>`;
+
+                                    item.innerHTML = html;
+                                    item.addEventListener('click', function(e) {
+                                        e.preventDefault();
+                                        artistInput.value = artist.name;
+                                        searchResults.innerHTML = '';
+                                    });
+
+                                    list.appendChild(item);
+                                });
+
+                                searchResults.appendChild(list);
+                            }
+                        })
+                        .catch(error => console.error('Erreur:', error));
+                }, 300);
+            });
+        }
+
+        const addTagBtn = document.getElementById('add-tag');
+        const tagsContainer = document.getElementById('tags-container');
+
+        if (addTagBtn && tagsContainer) {
+            let tagIndex = tagsContainer.querySelectorAll('input').length;
+
+            addTagBtn.addEventListener('click', function() {
+                const prototype = tagsContainer.dataset.prototype;
+                const newTag = prototype.replace(/__name__/g, tagIndex);
+
+                const div = document.createElement('div');
+                div.className = 'd-flex align-items-center mb-2';
+                div.innerHTML = newTag + '<button type="button" class="btn btn-sm btn-danger ms-2 remove-tag"><i class="bi bi-trash"></i></button>';
+
+                tagsContainer.appendChild(div);
+                tagIndex++;
+            });
+
+            tagsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-tag') || e.target.parentElement.classList.contains('remove-tag')) {
+                    e.preventDefault();
+                    const btn = e.target.classList.contains('remove-tag') ? e.target : e.target.parentElement;
+                    btn.closest('.d-flex').remove();
+                }
+            });
+        }
+    });
+</script>

@@ -1,0 +1,246 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.title }} - Administration{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-4 text-primary">
+            <i class="bi bi-file-text"></i> Détails de l'article
+        </h1>
+        <div>
+            <a href="{{ path('app_admin_article_edit', {'id': article.id}) }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Modifier
+            </a>
+            <a href="{{ path('app_admin_article_index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informations générales</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-dark">
+                        <tr>
+                            <th style="width: 200px;">ID</th>
+                            <td>{{ article.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Titre</th>
+                            <td>{{ article.title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Slug</th>
+                            <td>{{ article.slug }}</td>
+                        </tr>
+                        <tr>
+                            <th>Artiste</th>
+                            <td>{{ article.artistName }}</td>
+                        </tr>
+                        <tr>
+                            <th>Auteur</th>
+                            <td>{{ article.author ? article.author.username ~ ' (' ~ article.author.email ~ ')' : 'Anonyme' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Statut</th>
+                            <td>
+                                {% if article.isPublished %}
+                                    <span class="badge bg-success">Publié</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Brouillon</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Vues</th>
+                            <td>{{ article.viewCount }}</td>
+                        </tr>
+                        <tr>
+                            <th>Tags</th>
+                            <td>
+                                {% for tag in article.tags %}
+                                    <span class="tag">{{ tag }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Contenu</h5>
+                </div>
+                <div class="card-body">
+                    {% if article.excerpt %}
+                        <h6>Extrait :</h6>
+                        <p class="text-secondary">{{ article.excerpt }}</p>
+                        <hr>
+                    {% endif %}
+
+                    <h6>Contenu complet :</h6>
+                    <div class="content">
+                        {{ article.content|nl2br }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Commentaires ({{ article.comments|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if article.comments|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Auteur</th>
+                                    <th>Commentaire</th>
+                                    <th>Date</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for comment in article.comments %}
+                                    <tr>
+                                        <td>{{ comment.author ? comment.author.username : 'Anonyme' }}</td>
+                                        <td>{{ comment.content|slice(0, 50) }}...</td>
+                                        <td>{{ comment.createdAt ? comment.createdAt|date('d/m/Y H:i') : 'N/A' }}</td>
+                                        <td>
+                                            {% if comment.isDeleted %}
+                                                <span class="badge bg-danger">Supprimé</span>
+                                            {% elseif comment.isApproved %}
+                                                <span class="badge bg-success">Approuvé</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">En attente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not comment.isDeleted %}
+                                                {% if not comment.isApproved %}
+                                                    <form method="post" action="{{ path('app_comment_approve', {'id': comment.id}) }}" style="display: inline;">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('approve' ~ comment.id) }}">
+                                                        <button type="submit" class="btn btn-sm btn-success" title="Approuver">
+                                                            <i class="bi bi-check"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                <form method="post" action="{{ path('app_comment_delete', {'id': comment.id}) }}" style="display: inline;">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-secondary">Aucun commentaire</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Dates</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Créé le :</strong><br>{{ article.createdAt ? article.createdAt|date('d/m/Y à H:i') : 'N/A' }}</p>
+                    <p><strong>Modifié le :</strong><br>{{ article.updatedAt ? article.updatedAt|date('d/m/Y à H:i') : 'N/A' }}</p>
+                    {% if article.publishedAt %}
+                        <p><strong>Publié le :</strong><br>{{ article.publishedAt|date('d/m/Y à H:i') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Spotify</h5>
+                </div>
+                <div class="card-body">
+                    {% if article.artistImage %}
+                        <img src="{{ article.artistImage }}" class="img-fluid rounded mb-3" alt="{{ article.artistName }}">
+                    {% endif %}
+
+                    {% if article.artistSpotifyId %}
+                        <p><strong>Spotify ID :</strong><br>{{ article.artistSpotifyId }}</p>
+                        <a href="https://open.spotify.com/artist/{{ article.artistSpotifyId }}" target="_blank" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-spotify"></i> Voir sur Spotify
+                        </a>
+                    {% else %}
+                        <p class="text-secondary">Aucune donnée Spotify liée</p>
+                    {% endif %}
+
+                    {% if article.artistData %}
+                        <hr>
+                        <h6>Données récupérées :</h6>
+                        <small class="text-secondary">
+                            Genres : {{ article.artistData.genres|default([])|join(', ') }}<br>
+                            Popularité : {{ article.artistData.popularity|default('N/A') }}/100
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_article_show', {'slug': article.slug}) }}" class="btn btn-info" target="_blank">
+                            <i class="bi bi-eye"></i> Voir sur le site
+                        </a>
+                        <a href="{{ path('app_admin_article_edit', {'id': article.id}) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                        <form method="post" action="{{ path('app_admin_article_toggle_publish', {'id': article.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ article.id) }}">
+                            <button type="submit" class="btn {{ article.isPublished ? 'btn-secondary' : 'btn-success' }} w-100">
+                                <i class="bi bi-{{ article.isPublished ? 'eye-slash' : 'check-circle' }}"></i>
+                                {{ article.isPublished ? 'Dépublier' : 'Publier' }}
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer l'article "{{ article.title }}" ?</p>
+                    <p class="text-warning"><small>Cette action est irréversible et supprimera également tous les commentaires associés.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form method="post" action="{{ path('app_admin_article_delete', {'id': article.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

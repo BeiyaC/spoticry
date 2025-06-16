@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des utilisateurs - Administration{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-4 text-primary">
+            <i class="bi bi-people"></i> Gestion des utilisateurs
+        </h1>
+        {% if is_granted('ROLE_SUPER_ADMIN') %}
+            <a href="{{ path('app_create_admin') }}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Créer un administrateur
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom d'utilisateur</th>
+                        <th>Email</th>
+                        <th>Rôles</th>
+                        <th>Date création</th>
+                        <th>Articles</th>
+                        <th>Commentaires</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in pagination %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% for role in user.roles %}
+                                    {% if role == 'ROLE_SUPER_ADMIN' %}
+                                        <span class="badge bg-danger">Super Admin</span>
+                                    {% elseif role == 'ROLE_ADMIN' %}
+                                        <span class="badge bg-warning">Admin</span>
+                                    {% elseif role == 'ROLE_USER' %}
+                                        <span class="badge bg-primary">User</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>{{ user.createdAt ? user.createdAt|date('d/m/Y') : 'N/A' }}</td>
+                            <td>{{ user.articles|length }}</td>
+                            <td>{{ user.comments|length }}</td>
+                            <td>
+                                {% if is_granted('ROLE_SUPER_ADMIN') and user != app.user %}
+                                    <div class="btn-group" role="group">
+                                        <form method="post" action="{{ path('app_admin_user_toggle_admin', {'id': user.id}) }}" style="display: inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ user.id) }}">
+                                            <button type="submit" class="btn btn-sm {{ 'ROLE_ADMIN' in user.roles ? 'btn-secondary' : 'btn-success' }}"
+                                                    title="{{ 'ROLE_ADMIN' in user.roles ? 'Retirer admin' : 'Rendre admin' }}">
+                                                <i class="bi bi-{{ 'ROLE_ADMIN' in user.roles ? 'shield-slash' : 'shield-check' }}"></i>
+                                            </button>
+                                        </form>
+
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}" title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <span class="text-secondary">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">
+                                <em>Aucun utilisateur trouvé</em>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if pagination.pageCount > 1 %}
+                <div class="d-flex justify-content-center mt-4">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% for user in pagination %}
+        {% if user != app.user %}
+            <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirmer la suppression</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Êtes-vous sûr de vouloir supprimer l'utilisateur "{{ user.username }}" ?</p>
+                            <p class="text-warning"><small>Cette action supprimera également tous ses articles et commentaires.</small></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <form method="post" action="{{ path('app_admin_user_delete', {'id': user.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                <button type="submit" class="btn btn-danger">Supprimer</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

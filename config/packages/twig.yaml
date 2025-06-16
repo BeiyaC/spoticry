@@ -1,5 +1,9 @@
 twig:
-    file_name_pattern: '*.twig'
+    default_path: '%kernel.project_dir%/templates'
+    form_themes: ['bootstrap_5_layout.html.twig']
+    globals:
+        app_name: 'Music Blog'
+        spotify_enabled: '%env(bool:SPOTIFY_CLIENT_ID)%'
 
 when@test:
     twig:

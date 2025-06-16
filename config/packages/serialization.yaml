@@ -1,0 +1,7 @@
+framework:
+    serializer:
+        default_context:
+            enable_max_depth: true
+        mapping:
+            paths:
+                - '%kernel.project_dir%/config/serialization'

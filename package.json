@@ -1,0 +1,29 @@
+{
+    "name": "spoticry",
+    "version": "1.0.0",
+    "description": "Music Blog - A Symfony application",
+    "main": "assets/app.js",
+    "directories": {
+        "test": "tests"
+    },
+    "scripts": {
+        "dev-server": "encore dev-server",
+        "dev": "encore dev",
+        "watch": "encore dev --watch",
+        "build": "encore production --progress"
+    },
+    "keywords": [
+        "symfony",
+        "blog",
+        "music"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "@symfony/webpack-encore": "^4.5.0",
+        "webpack": "^5.89.0",
+        "webpack-cli": "^5.1.4",
+        "webpack-notifier": "^1.15.0"
+    },
+    "dependencies": {}
+}

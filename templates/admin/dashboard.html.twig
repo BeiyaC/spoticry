@@ -1,0 +1,219 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Administration{% endblock %}
+
+{% block body %}
+    <h1 class="display-4 text-primary mb-4">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </h1>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-newspaper display-4 text-primary mb-3"></i>
+                    <h3 class="text-primary">{{ stats.totalArticles }}</h3>
+                    <p class="text-secondary mb-0">Articles total</p>
+                    <small class="text-success">{{ stats.publishedArticles }} publiés</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-file-earmark-text display-4 text-warning mb-3"></i>
+                    <h3 class="text-warning">{{ stats.draftArticles }}</h3>
+                    <p class="text-secondary mb-0">Brouillons</p>
+                    <small class="text-muted">Non publiés</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-chat-dots display-4 text-info mb-3"></i>
+                    <h3 class="text-info">{{ stats.totalComments }}</h3>
+                    <p class="text-secondary mb-0">Commentaires</p>
+                    <small class="text-danger">{{ stats.pendingComments }} en attente</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-people display-4 text-success mb-3"></i>
+                    <h3 class="text-success">{{ stats.totalUsers }}</h3>
+                    <p class="text-secondary mb-0">Utilisateurs</p>
+                    <small class="text-primary">{{ stats.totalAdmins }} admins</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Articles récents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for article in recentArticles %}
+                            <a href="{{ path('app_admin_article_show', {'id': article.id}) }}"
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 text-primary">{{ article.title|slice(0, 50) }}...</h6>
+                                        <small class="text-secondary">Par {{ article.author ? article.author.username : 'Anonyme' }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if article.isPublished %}
+                                            <span class="badge bg-success">Publié</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Brouillon</span>
+                                        {% endif %}
+                                        <br>
+                                        <small class="text-secondary">{{ article.createdAt ? article.createdAt|date('d/m') : 'N/A' }}</small>
+                                    </div>
+                                </div>
+                            </a>
+                        {% else %}
+                            <p class="text-center text-secondary mb-0">Aucun article</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="{{ path('app_admin_article_index') }}" class="btn btn-sm btn-primary">
+                            Voir tous les articles <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-fire"></i> Articles les plus vus</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for article in popularArticles %}
+                            <a href="{{ path('app_admin_article_show', {'id': article.id}) }}"
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 text-primary">{{ article.title|slice(0, 50) }}...</h6>
+                                        <small class="text-secondary">{{ article.artistName }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">{{ article.viewCount }} vues</span>
+                                        <br>
+                                        <small class="text-secondary">{{ article.publishedAt ? article.publishedAt|date('d/m') : 'Non publié' }}</small>
+                                    </div>
+                                </div>
+                            </a>
+                        {% else %}
+                            <p class="text-center text-secondary mb-0">Aucune donnée</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-chat-left-dots"></i> Commentaires récents</h5>
+                </div>
+                <div class="card-body">
+                    {% if recentComments|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Auteur</th>
+                                    <th>Commentaire</th>
+                                    <th>Article</th>
+                                    <th>Date</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for comment in recentComments %}
+                                    <tr>
+                                        <td>{{ comment.author ? comment.author.username : 'Anonyme' }}</td>
+                                        <td>{{ comment.content|slice(0, 50) }}...</td>
+                                        <td>
+                                            {% if comment.article %}
+                                                <a href="{{ path('app_article_show', {'slug': comment.article.slug}) }}"
+                                                   class="text-primary text-decoration-none" target="_blank">
+                                                    {{ comment.article.title|slice(0, 30) }}...
+                                                </a>
+                                            {% else %}
+                                                <span class="text-secondary">Article supprimé</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ comment.createdAt ? comment.createdAt|date('d/m H:i') : 'N/A' }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-secondary mb-0">Aucun commentaire récent</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-tags"></i> Tags populaires</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for tag in popularTags %}
+                            <a href="{{ path('app_article_by_tag', {'tag': tag}) }}"
+                               class="tag text-decoration-none" target="_blank">
+                                {{ tag }}
+                            </a>
+                        {% else %}
+                            <p class="text-center text-secondary mb-0 w-100">Aucun tag</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="bi bi-lightning"></i> Actions rapides</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ path('app_admin_article_new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nouvel article
+                </a>
+                <a href="{{ path('app_admin_article_index') }}" class="btn btn-info">
+                    <i class="bi bi-list"></i> Gérer les articles
+                </a>
+                {% if stats.pendingComments > 0 %}
+                    <a href="{{ path('app_admin_article_index') }}" class="btn btn-warning">
+                        <i class="bi bi-chat-dots"></i> Modérer les commentaires
+                        <span class="badge bg-danger">{{ stats.pendingComments }}</span>
+                    </a>
+                {% endif %}
+                <a href="{{ path('app_create_admin') }}" class="btn btn-success">
+                    <i class="bi bi-person-plus"></i> Créer un admin
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
