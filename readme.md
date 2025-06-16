@@ -194,3 +194,7 @@ Si vous n'avez pas de clés Spotify API, vous pouvez désactiver cette fonctionn
 SPOTIFY_CLIENT_ID=
 SPOTIFY_CLIENT_SECRET=
 ```
+
+## 🤯 Bug
+
+Il arrive parfois d'avoir besoin de reload la page pour que la navbar fonctionne
